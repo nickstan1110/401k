@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roth vs Traditional Calculator</title>
 <style>
 :root {
   --primary-roth: #1D9E75;
@@ -31,20 +32,20 @@ body {
   background: var(--bg-card);
   padding: 24px;
   border-radius: 16px;
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
 }
 
-h1 { font-size: 1.5rem; margin-bottom: 1.5rem; text-align: center; }
+h1 { font-size: 1.5rem; margin-bottom: 1.5rem; text-align: center; color: var(--text-main); }
 
-/* Grid Layouts */
+/* Layout Grid */
 .main-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 24px;
+  gap: 32px;
 }
 
 @media (min-width: 768px) {
-  .main-grid { grid-template-columns: 1fr 1fr; }
+  .main-grid { grid-template-columns: 1fr 1.2fr; }
 }
 
 .section-title {
@@ -53,16 +54,16 @@ h1 { font-size: 1.5rem; margin-bottom: 1.5rem; text-align: center; }
   color: var(--text-sub);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
   border-bottom: 1px solid var(--border);
-  padding-bottom: 4px;
+  padding-bottom: 6px;
 }
 
-/* Controls */
+/* Control Styling */
 .control-group {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
 }
 
 .ctrl { display: flex; flex-direction: column; gap: 8px; }
@@ -91,9 +92,12 @@ input[type="range"]::-webkit-slider-thumb {
   border: 2px solid var(--primary-trad);
   border-radius: 50%;
   cursor: pointer;
+  transition: transform 0.1s ease;
 }
 
-/* Metrics */
+input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
+
+/* Results Grid */
 .metric-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -105,6 +109,8 @@ input[type="range"]::-webkit-slider-thumb {
   padding: 16px;
   border-radius: var(--radius);
   border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
 }
 
 .metric-label { font-size: 0.75rem; color: var(--text-sub); margin: 0; }
@@ -116,77 +122,79 @@ input[type="range"]::-webkit-slider-thumb {
   padding: 16px;
   border-radius: var(--radius);
   font-size: 0.95rem;
-  line-height: 1.5;
-  border-left: 4px solid var(--primary-trad);
+  line-height: 1.6;
+  transition: all 0.3s ease;
 }
 
-.roth-win { border-color: var(--primary-roth) !important; background: #f0fdf4; }
-.trad-win { border-color: var(--primary-trad) !important; background: #eef2ff; }
+.roth-win { border-left: 4px solid var(--primary-roth); background: #f0fdf4; color: #166534; }
+.trad-win { border-left: 4px solid var(--primary-trad); background: #eef2ff; color: #3730a3; }
 
-/* Chart */
+/* Chart Area */
 .chart-container {
-  height: 300px;
-  margin-top: 24px;
+  height: 320px;
+  margin-top: 32px;
 }
 </style>
 </head>
 <body>
 
 <div class="container">
-  <h1>Roth vs. Traditional 401(k)</h1>
+  <h1>Retirement Tax Strategy</h1>
 
   <div class="main-grid">
     <div>
-      <p class="section-title">Investment Strategy</p>
+      <p class="section-title">Assumptions</p>
       <div class="control-group">
         <div class="ctrl">
           <label>Monthly Contribution <span id="contrib-out">$5,000</span></label>
-          <input type="range" min="500" max="10000" step="100" value="5000" id="contrib">
+          <input type="range" min="500" max="15000" step="100" value="5000" id="contrib">
         </div>
         <div class="ctrl">
-          <label>Years to Growth <span id="years-out">30</span></label>
-          <input type="range" min="10" max="45" step="1" value="30" id="years">
+          <label>Years of Growth <span id="years-out">30</span></label>
+          <input type="range" min="5" max="45" step="1" value="30" id="years">
         </div>
         <div class="ctrl">
-          <label>Annual Return <span id="rate-out">10%</span></label>
+          <label>Annual Return <span id="rate-out">8%</span></label>
           <input type="range" min="3" max="12" step="0.5" value="8" id="rate">
         </div>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 16px;">
           <div class="ctrl">
-            <label>Tax Now <span id="ctax-out">25%</span></label>
-            <input type="range" min="10" max="50" value="25" id="contrib-tax">
+            <label>Tax Rate Now <span id="ctax-out">24%</span></label>
+            <input type="range" min="10" max="50" value="24" id="contrib-tax">
           </div>
           <div class="ctrl">
-            <label>Tax Later <span id="wtax-out">25%</span></label>
-            <input type="range" min="10" max="50" value="25" id="withdraw-tax">
+            <label>Tax Rate Later <span id="wtax-out">20%</span></label>
+            <input type="range" min="10" max="50" value="20" id="withdraw-tax">
           </div>
         </div>
       </div>
     </div>
 
     <div>
-      <p class="section-title">Projected Outcomes</p>
+      <p class="section-title">Projections</p>
       <div class="metric-grid">
-        <div class="metric">
-          <p class="metric-label">Future Gross Val</p>
-          <p class="metric-value" id="future-val">—</p>
-        </div>
         <div class="metric">
           <p class="metric-label">Total Principal</p>
           <p class="metric-value" id="total-contrib">—</p>
         </div>
+        <div class="metric">
+          <p class="metric-label">Future Gross Val</p>
+          <p class="metric-value" id="future-val">—</p>
+        </div>
+        
         <div class="metric" style="border-top: 3px solid var(--primary-roth)">
-          <p class="metric-label">Roth Tax Paid</p>
+          <p class="metric-label">Roth Taxes Paid</p>
           <p class="metric-value" style="color: var(--primary-roth)" id="roth-tax">—</p>
         </div>
         <div class="metric" style="border-top: 3px solid var(--primary-trad)">
-          <p class="metric-label">Trad. Tax Due</p>
+          <p class="metric-label">Trad. Taxes Due</p>
           <p class="metric-value" style="color: var(--primary-trad)" id="trad-tax">—</p>
         </div>
       </div>
 
       <div id="verdict-box">
-        Calculating your best option...
+        Calculating your optimal strategy...
       </div>
     </div>
   </div>
@@ -198,14 +206,15 @@ input[type="range"]::-webkit-slider-thumb {
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
-// Keep original logic, update UI hooks
 function fv(m, y, r) {
   const rate = r / 100 / 12;
   const n = y * 12;
+  if (rate === 0) return m * n;
   return m * (Math.pow(1 + rate, n) - 1) / rate;
 }
 
 function fmt(n) {
+  if (n >= 1e9) return '$' + (n / 1e9).toFixed(2) + 'B';
   if (n >= 1e6) return '$' + (n / 1e6).toFixed(2) + 'M';
   return '$' + Math.round(n).toLocaleString();
 }
@@ -219,33 +228,43 @@ function update() {
   const ctax    = +document.getElementById('contrib-tax').value;
   const wtax    = +document.getElementById('withdraw-tax').value;
 
+  // Update UI Labels
   document.getElementById('contrib-out').textContent = '$' + monthly.toLocaleString();
   document.getElementById('years-out').textContent = years + ' yrs';
   document.getElementById('rate-out').textContent = rate + '%';
   document.getElementById('ctax-out').textContent = ctax + '%';
   document.getElementById('wtax-out').textContent = wtax + '%';
 
+  // Calculations
   const totalContrib = monthly * 12 * years;
   const futureVal = fv(monthly, years, rate);
   const rothTax = totalContrib * (ctax / 100);
   const tradTax = futureVal * (wtax / 100);
   const savings = tradTax - rothTax;
 
+  // Update Result Numbers
   document.getElementById('total-contrib').textContent = fmt(totalContrib);
   document.getElementById('future-val').textContent = fmt(futureVal);
   document.getElementById('roth-tax').textContent = fmt(rothTax);
   document.getElementById('trad-tax').textContent = fmt(tradTax);
 
+  // Update Verdict
   const vBox = document.getElementById('verdict-box');
   if (savings > 0) {
     vBox.className = 'roth-win';
-    vBox.innerHTML = `<strong>Roth wins!</strong> By paying taxes now, you save approximately <strong>${fmt(savings)}</strong> in future taxes.`;
-  } else {
+    vBox.innerHTML = `<strong>Roth is more efficient.</strong> By paying taxes on contributions now, you avoid a massive tax bill later, saving roughly <strong>${fmt(savings)}</strong>.`;
+  } else if (savings < 0) {
     vBox.className = 'trad-win';
-    vBox.innerHTML = `<strong>Traditional wins!</strong> Your lower expected tax rate in retirement saves you <strong>${fmt(Math.abs(savings))}</strong>.`;
+    vBox.innerHTML = `<strong>Traditional is more efficient.</strong> Your lower expected tax rate in retirement allows you to keep <strong>${fmt(Math.abs(savings))}</strong> more than if you chose Roth.`;
+  } else {
+    vBox.className = '';
+    vBox.innerHTML = `<strong>It's a tie.</strong> Since your tax rates are identical now and later, both options result in the same after-tax net.`;
   }
 
+  // Update Chart
   const labels = [], rothData = [], tradData = [];
+  const skip = Math.max(1, Math.floor(years / 8));
+  
   for (let y = 1; y <= years; y++) {
     labels.push('Yr ' + y);
     const g = fv(monthly, y, rate);
@@ -264,15 +283,18 @@ function update() {
       data: {
         labels: labels,
         datasets: [
-          { label: 'Roth (After-Tax)', data: rothData, borderColor: '#1D9E75', backgroundColor: '#1D9E7522', fill: true, tension: 0.4, pointRadius: 0 },
+          { label: 'Roth (After-Tax)', data: rothData, borderColor: '#1D9E75', backgroundColor: '#1D9E7515', fill: true, tension: 0.4, pointRadius: 0 },
           { label: 'Traditional (After-Tax)', data: tradData, borderColor: '#6366f1', borderDash: [5, 5], tension: 0.4, pointRadius: 0 }
         ]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { position: 'bottom' } },
-        scales: { y: { ticks: { callback: v => fmt(v) } } }
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 12 } } } },
+        scales: { 
+          y: { ticks: { callback: v => fmt(v), font: { size: 10 } }, grid: { color: '#f1f5f9' } },
+          x: { ticks: { maxRotation: 0, autoSkip: true, font: { size: 10 } }, grid: { display: false } }
+        }
       }
     });
   }
