@@ -1,0 +1,206 @@
+
+<style>
+.metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 1rem 0; }
+.metric { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.85rem 1rem; }
+.metric-label { font-size: 12px; color: var(--color-text-secondary); margin: 0 0 4px; }
+.metric-value { font-size: 20px; font-weight: 500; margin: 0; }
+.metric-sub { font-size: 11px; color: var(--color-text-tertiary); margin: 2px 0 0; }
+.roth-color { color: #1D9E75; }
+.trad-color { color: #534AB7; }
+.controls-top { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 1rem 0 0.5rem; }
+.ctrl { display: flex; flex-direction: column; gap: 6px; }
+.ctrl label { font-size: 13px; color: var(--color-text-secondary); display: flex; justify-content: space-between; }
+.ctrl label span { font-weight: 500; color: var(--color-text-primary); }
+.section-title { font-size: 13px; font-weight: 500; color: var(--color-text-secondary); margin: 1.25rem 0 0.5rem; text-transform: uppercase; letter-spacing: 0.04em; }
+.diff-bar { height: 8px; border-radius: 4px; background: var(--color-border-tertiary); margin: 4px 0 12px; overflow: hidden; }
+.diff-fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
+.divider { border: none; border-top: 1px solid var(--color-border-secondary); margin: 1rem 0 0.5rem; }
+</style>
+
+<p class="section-title">Assumptions</p>
+<div class="controls-top">
+  <!-- Left column -->
+  <div style="display:flex;flex-direction:column;gap:14px;">
+    <div class="ctrl">
+      <label>Monthly contribution <span id="contrib-out">$5,000</span></label>
+      <input type="range" min="500" max="10000" step="100" value="5000" id="contrib">
+    </div>
+    <div class="ctrl">
+      <label>Annual growth rate <span id="rate-out">10%</span></label>
+      <input type="range" min="5" max="15" step="0.5" value="10" id="rate">
+    </div>
+  </div>
+  <!-- Right column -->
+  <div style="display:flex;flex-direction:column;gap:14px;">
+    <div class="ctrl">
+      <label>Tax rate (contribution) <span id="contrib-tax-out">25%</span></label>
+      <input type="range" min="15" max="50" step="1" value="25" id="contrib-tax">
+    </div>
+    <div class="ctrl">
+      <label>Tax rate (withdrawal) <span id="withdraw-tax-out">25%</span></label>
+      <input type="range" min="15" max="50" step="1" value="25" id="withdraw-tax">
+    </div>
+  </div>
+</div>
+
+<!-- Bottom full-width years slider -->
+<div class="ctrl" style="margin: 0.75rem 0 0.25rem;">
+  <label>Years invested <span id="years-out">30</span> years</label>
+  <input type="range" min="20" max="40" step="1" value="30" id="years" style="width:100%;">
+  <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--color-text-tertiary);margin-top:2px;">
+    <span>20 yrs</span><span>40 yrs</span>
+  </div>
+</div>
+
+<p class="section-title">Results</p>
+<div class="metric-grid">
+  <div class="metric">
+    <p class="metric-label">Total contributed</p>
+    <p class="metric-value" id="total-contrib">—</p>
+    <p class="metric-sub">before any tax</p>
+  </div>
+  <div class="metric">
+    <p class="metric-label">Future value (gross)</p>
+    <p class="metric-value" id="future-val">—</p>
+    <p class="metric-sub">both accounts equal</p>
+  </div>
+  <div class="metric">
+    <p class="metric-label"><span class="roth-color">Roth</span> taxes paid</p>
+    <p class="metric-value roth-color" id="roth-tax">—</p>
+    <p class="metric-sub">on contributions</p>
+  </div>
+  <div class="metric">
+    <p class="metric-label"><span class="trad-color">Traditional</span> taxes paid</p>
+    <p class="metric-value trad-color" id="trad-tax">—</p>
+    <p class="metric-sub">on full withdrawal</p>
+  </div>
+</div>
+
+<div style="margin: 1rem 0;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+    <span style="font-size:13px;color:var(--color-text-secondary);">Roth tax burden</span>
+    <span style="font-size:13px;font-weight:500;color:#1D9E75;" id="roth-pct">—</span>
+  </div>
+  <div class="diff-bar"><div class="diff-fill" id="roth-bar" style="background:#1D9E75;width:0%"></div></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+    <span style="font-size:13px;color:var(--color-text-secondary);">Traditional tax burden</span>
+    <span style="font-size:13px;font-weight:500;color:#534AB7;" id="trad-pct">—</span>
+  </div>
+  <div class="diff-bar"><div class="diff-fill" id="trad-bar" style="background:#534AB7;width:0%"></div></div>
+</div>
+
+<div style="background:var(--color-background-secondary);border-radius:var(--border-radius-lg);padding:1rem 1.25rem;font-size:14px;line-height:1.6;" id="verdict-box">&nbsp;</div>
+
+<div style="position:relative;width:100%;height:240px;margin-top:1.25rem;">
+  <canvas id="growthChart"></canvas>
+</div>
+<div style="display:flex;gap:20px;margin-top:8px;font-size:12px;color:var(--color-text-secondary);">
+  <span style="display:flex;align-items:center;gap:5px;"><span style="width:20px;height:3px;background:#1D9E75;display:inline-block;border-radius:2px;"></span>Roth (after-tax)</span>
+  <span style="display:flex;align-items:center;gap:5px;"><span style="width:20px;height:3px;background:#534AB7;display:inline-block;border-radius:2px;border:1px dashed #534AB7;"></span>Traditional (after-tax)</span>
+  <span style="display:flex;align-items:center;gap:5px;"><span style="width:20px;height:3px;background:#888;display:inline-block;border-radius:2px;"></span>Gross</span>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+function fv(monthly, years, rate) {
+  const r = rate / 100 / 12;
+  const n = years * 12;
+  if (r === 0) return monthly * n;
+  return monthly * (Math.pow(1 + r, n) - 1) / r;
+}
+function fmt(n) {
+  if (n >= 1e9) return '$' + (n / 1e9).toFixed(2) + 'B';
+  if (n >= 1e6) return '$' + (n / 1e6).toFixed(2) + 'M';
+  if (n >= 1e3) return '$' + (n / 1e3).toFixed(0) + 'K';
+  return '$' + Math.round(n).toLocaleString();
+}
+function fmtAxis(n) {
+  if (n >= 1e9) return '$' + (n / 1e9).toFixed(1) + 'B';
+  if (n >= 1e6) return '$' + (n / 1e6).toFixed(0) + 'M';
+  if (n >= 1e3) return '$' + (n / 1e3).toFixed(0) + 'K';
+  return '$' + n;
+}
+function pct(n) { return (n * 100).toFixed(1) + '%'; }
+
+let chart;
+
+function update() {
+  const monthly = +document.getElementById('contrib').value;
+  const years   = +document.getElementById('years').value;
+  const rate    = +document.getElementById('rate').value;
+  const ctax    = +document.getElementById('contrib-tax').value;
+  const wtax    = +document.getElementById('withdraw-tax').value;
+
+  document.getElementById('contrib-out').textContent     = '$' + monthly.toLocaleString();
+  document.getElementById('years-out').textContent       = years;
+  document.getElementById('rate-out').textContent        = rate + '%';
+  document.getElementById('contrib-tax-out').textContent = ctax + '%';
+  document.getElementById('withdraw-tax-out').textContent= wtax + '%';
+
+  const totalContrib = monthly * 12 * years;
+  const futureVal    = fv(monthly, years, rate);
+  const rothTax      = totalContrib * (ctax / 100);
+  const tradTax      = futureVal * (wtax / 100);
+  const savings      = tradTax - rothTax;
+
+  document.getElementById('total-contrib').textContent = fmt(totalContrib);
+  document.getElementById('future-val').textContent    = fmt(futureVal);
+  document.getElementById('roth-tax').textContent      = fmt(rothTax);
+  document.getElementById('trad-tax').textContent      = fmt(tradTax);
+
+  const rothPct = rothTax / futureVal;
+  const tradPct = tradTax / futureVal;
+  document.getElementById('roth-pct').textContent  = pct(rothPct);
+  document.getElementById('trad-pct').textContent  = pct(tradPct);
+  document.getElementById('roth-bar').style.width  = (rothPct * 100) + '%';
+  document.getElementById('trad-bar').style.width  = (tradPct * 100) + '%';
+
+  document.getElementById('verdict-box').innerHTML = savings > 0
+    ? 'With these rates, the <strong>Roth saves you ' + fmt(savings) + ' in taxes</strong>. Roth wins when your retirement rate is similar to or higher than your contribution rate.'
+    : 'With a lower retirement tax rate, the <strong>Traditional saves you ' + fmt(Math.abs(savings)) + ' in taxes</strong>. Traditional wins when you expect a lower bracket in retirement.';
+
+  const labels = [], grossData = [], rothData = [], tradData = [];
+  for (let y = 1; y <= years; y++) {
+    labels.push('Yr ' + y);
+    const g = fv(monthly, y, rate);
+    grossData.push(Math.round(g));
+    rothData.push(Math.round(g));
+    tradData.push(Math.round(g * (1 - wtax / 100)));
+  }
+  const skip = Math.ceil(years / 10);
+  const filteredLabels = labels.map((l, i) => (i + 1) % skip === 0 || i === years - 1 ? l : '');
+
+  if (chart) {
+    chart.data.labels = filteredLabels;
+    chart.data.datasets[0].data = grossData;
+    chart.data.datasets[1].data = rothData;
+    chart.data.datasets[2].data = tradData;
+    chart.update();
+  } else {
+    chart = new Chart(document.getElementById('growthChart'), {
+      type: 'line',
+      data: {
+        labels: filteredLabels,
+        datasets: [
+          { label: 'Gross',              data: grossData, borderColor: '#888780', borderWidth: 1.5, pointRadius: 0, tension: 0.3 },
+          { label: 'Roth (after-tax)',   data: rothData,  borderColor: '#1D9E75', borderWidth: 2,   pointRadius: 0, tension: 0.3 },
+          { label: 'Traditional',        data: tradData,  borderColor: '#534AB7', borderWidth: 2,   pointRadius: 0, borderDash: [5,3], tension: 0.3 },
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: '#888', font: { size: 11 }, autoSkip: false, maxRotation: 0 }, grid: { display: false } },
+          y: { ticks: { color: '#888', font: { size: 11 }, callback: v => fmtAxis(v) }, grid: { color: 'rgba(128,128,128,0.1)' } }
+        }
+      }
+    });
+  }
+}
+
+['contrib','years','rate','contrib-tax','withdraw-tax'].forEach(id =>
+  document.getElementById(id).addEventListener('input', update)
+);
+update();
+</script>
